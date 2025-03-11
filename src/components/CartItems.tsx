@@ -24,6 +24,7 @@ export default function CartItems({
   };
 
   const calculateSubtotal = (price: number, quantity: number) => {
+    if (Number.isNaN(quantity)) return 0;
     return price * quantity;
   };
   return (
@@ -73,9 +74,14 @@ export default function CartItems({
                       onChange={(e) =>
                         updateQuantity(
                           product.id,
-                          Number.parseInt(e.target.value) || 0
+                          Number.parseInt(e.target.value)
                         )
                       }
+                      onBlur={(e) => {
+                        if (e.target.value === "") {
+                          updateQuantity(product.id, 0);
+                        }
+                      }}
                       className="h-8 w-12 rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <Button
@@ -95,6 +101,7 @@ export default function CartItems({
                   <span className="font-medium text-center">
                     {formatCurrency(
                       calculateSubtotal(product.price, product.quantity)
+                      //
                     )}
                   </span>
                 </div>

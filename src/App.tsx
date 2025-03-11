@@ -1,11 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ShoppingCart } from "lucide-react";
-import { productList } from "./utils";
+import { productList, Product } from "./utils";
 import CartItems from "./components/CartItems";
 import CartSummary from "./components/CartSummary";
 
 export default function Page() {
-  const [products, setProducts] = useState(productList);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const storedCart = localStorage.getItem("shopping cart");
+    if (!storedCart) return productList;
+    const parsedCart = JSON.parse(storedCart) as Product[];
+    for (const item of parsedCart) {
+      if (!item.quantity) {
+        item.quantity = 0;
+      }
+    }
+    return parsedCart;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("shopping cart", JSON.stringify(products));
+  }, [products, setProducts]);
 
   return (
     <div className="flex flex-col items-center px-4 py-8 w-full">

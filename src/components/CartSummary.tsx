@@ -9,7 +9,7 @@ import type { Product } from "@/utils";
 import { useState } from "react";
 
 export default function CartSummary({ products }: { products: Product[] }) {
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState<number | null>(0);
   const calculateSubtotal = (price: number, quantity: number) => {
     return price * quantity;
   };
@@ -18,14 +18,18 @@ export default function CartSummary({ products }: { products: Product[] }) {
     return total + (Number.isNaN(subtotal) ? 0 : subtotal);
   }, 0);
 
-  const discountAmount = (cartTotal * discount) / 100;
-  const discountedTotal = cartTotal - discountAmount;
+  const discountAmount = (cartTotal * (discount ? discount : 0)) / 100;
+  const discountedTotal =
+    cartTotal - (Number.isNaN(discountAmount) ? 0 : discountAmount);
 
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value === "") {
+      setDiscount(null);
+      return;
+    }
+
     const value = Number.parseFloat(e.target.value);
-    if (isNaN(value)) {
-      setDiscount(0);
-    } else if (value >= 0 && value <= 100) {
+    if (value >= 0 && value <= 100) {
       setDiscount(value);
     }
   };
@@ -49,15 +53,20 @@ export default function CartSummary({ products }: { products: Product[] }) {
                 type="number"
                 min="0"
                 max="100"
-                value={discount}
+                value={discount !== null ? discount : ""}
                 onChange={handleDiscountChange}
+                onBlur={(e) => {
+                  if (e.target.value === "") {
+                    setDiscount(0);
+                  }
+                }}
                 className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <span className="ml-2">%</span>
             </div>
           </div>
 
-          {discount > 0 && (
+          {discount !== null && discount > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount</span>
               <span>-{formatCurrency(discountAmount)}</span>
@@ -66,7 +75,11 @@ export default function CartSummary({ products }: { products: Product[] }) {
           <Separator />
           <div className="flex justify-between font-bold text-lg">
             <span>Total</span>
-            <span className={cn(discount > 0 && "text-green-600")}>
+            <span
+              className={cn(
+                discount !== null && discount > 0 && "text-green-600"
+              )}
+            >
               {formatCurrency(discountedTotal)}
             </span>
           </div>
